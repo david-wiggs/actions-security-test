@@ -1,0 +1,24 @@
+name: PR-Triggered Production Deploy
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - name: Run PR code with production secrets
+        env:
+          PROD_TOKEN: ${{ secrets.PRODUCTION_API_TOKEN }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          npm run build
+          npm run deploy -- --token $PROD_TOKEN

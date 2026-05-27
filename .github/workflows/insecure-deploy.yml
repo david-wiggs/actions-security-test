@@ -1,0 +1,30 @@
+name: Insecure Deploy (Unpinned + Broad Permissions)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+permissions: write-all
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install
+      - name: Download deploy script
+        run: curl -sSL https://deploy-scripts.example.com/deploy.sh | bash
+      - name: Deploy with secrets in env
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET }}
+          DATABASE_URL: ${{ secrets.DB_URL }}
+        run: |
+          echo "Deploying..."
+          ./deploy.sh --env production
